@@ -1,9 +1,21 @@
+---
+layout: default
+title: "Animini: Emphasis-Controlled Facial Acting"
+---
+
 # Emphasis-Controlled Facial Acting (No Model Training)
 
-**TL;DR:** I improve AI facial acting **without retraining the model** by treating prompting as a **model-agnostic control layer** that maps speech emphasis to **accents + holds**, reducing “even timing” and making performance more intentional.
+<div class="tldr">
+<strong>TL;DR:</strong> I improve AI facial acting <strong>without retraining the model</strong> by treating prompting as a <strong>model-agnostic control layer</strong> that maps speech emphasis to <strong>accents + holds</strong>, reducing "even timing" and making performance more intentional.
+</div>
 
-**Links:**  
-[Results Gallery](#results-gallery) · [Citation](#citation) · Contact: X/Linkedin: @flower_alicee
+<div class="nav-links">
+<a href="#results-gallery">Results Gallery</a>
+<a href="#key-results-v1">Key Results</a>
+<a href="#citation">Citation</a>
+<a href="https://twitter.com/flower_alicee">X @flower_alicee</a>
+<a href="https://linkedin.com/in/flower_alicee">LinkedIn</a>
+</div>
 
 ---
 
@@ -11,20 +23,22 @@
 
 > **Controlled setup:** same base model + same audio + same transcript. Only the prompt/control layer differs.
 
-### Example 1 — “X”  
-- **Transcript:** X  
-- **Target emphasis:** X  
-- **Expected primitives:** hold → accent → recovery  
-- **Baseline diagnosis:** even timing (accents near-uniform; low stress/unstress contrast)  
-- **Animini change:** accents land on emphasized words + clearer holds/contrast  
-
-**Baseline:** X (mp4/gif)  
-**Animini:** X (mp4/gif)
-
----
-
-### Example 2 — “X”
-(Repeat until you have 6–12 pairs)
+<table>
+<tr>
+<td align="center" width="33%">
+<video src="baseline.mp4" controls width="100%"></video>
+<br><strong>Baseline</strong>
+</td>
+<td align="center" width="33%">
+<video src="real_animation.mp4" controls width="100%"></video>
+<br><strong>Realistic animation prompt with AI audio enhanced with Animini</strong>
+</td>
+<td align="center" width="33%">
+<video src="withaudio.mp4" controls width="100%"></video>
+<br><strong>Pixar/Disney styled animation with real voice audio prompt enhanced with Animini</strong>
+</td>
+</tr>
+</table>
 
 ---
 

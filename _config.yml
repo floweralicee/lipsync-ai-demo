@@ -1,0 +1,16 @@
+title: "Animini: Emphasis-Controlled Facial Acting"
+description: "Improving AI facial acting without retraining the model"
+author: Alice Chen
+baseurl: "/lipsync-ai-demo"
+url: "https://floweralicee.github.io"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
