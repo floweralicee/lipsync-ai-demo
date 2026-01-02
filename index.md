@@ -1,13 +1,13 @@
-# Animini Results: Emphasis-Controlled Facial Acting (No Model Training)
+# Emphasis-Controlled Facial Acting (No Model Training)
 
 **TL;DR:** I improve AI facial acting **without retraining the model** by treating prompting as a **model-agnostic control layer** that maps speech emphasis to **accents + holds**, reducing “even timing” and making performance more intentional.
 
 **Links:**  
-[Paper (2–4 pages)](X) · [Code](X) · [Eval/Benchmark](X) · [Results Gallery](#results-gallery) · [Citation](#citation) · Contact: @flower_alicee
+[Results Gallery](#results-gallery) · [Citation](#citation) · Contact: X/Linkedin: @flower_alicee
 
 ---
 
-## Results Gallery (watch first)
+## Results Gallery
 
 > **Controlled setup:** same base model + same audio + same transcript. Only the prompt/control layer differs.
 
@@ -41,7 +41,7 @@
 
 ---
 
-## Definitions (so we’re not hand-wavy)
+## Definitions
 
 - **Even timing:** motion accents occur at near-uniform intervals with low contrast between stressed and unstressed words.
 - **Accent:** a localized peak in motion (head/face/eyes/brows) that marks emphasis.
@@ -52,7 +52,7 @@
 
 ---
 
-## Controls (MoCha-style sections)
+## Controls
 
 ### Timing Control (Emphasis + Holds + Contrast)
 - **What I change:** X  
@@ -70,7 +70,7 @@
 
 ---
 
-## Evaluation Protocol (How I avoided cherry-picking)
+## Evaluation Protocol
 
 ### Controlled Comparison Setup
 - Same base model
@@ -112,7 +112,7 @@ Ablation = remove one component to test what actually causes improvement.
 
 ## Animation-as-Data (Pixar/Disney analysis background)
 
-I treat performance as measurable behavior, not taste.
+Performance as measurable behavior, instead of pure taste.
 
 - **Scenes analyzed:** ~1,250
 - **Frames annotated:** ~1,840,000
