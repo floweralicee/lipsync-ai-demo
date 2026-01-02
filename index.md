@@ -13,8 +13,8 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 <a href="#results-gallery">Results Gallery</a>
 <a href="#key-results-v1">Key Results</a>
 <a href="#citation">Citation</a>
-<a href="https://twitter.com/flower_alicee">X @flower_alicee</a>
-<a href="https://linkedin.com/in/flower_alicee">LinkedIn</a>
+<a href="https://twitter.com/flower_alicee">X</a>
+<a href="https://linkedin.com/in/floweralice">LinkedIn</a>
 </div>
 
 ---
@@ -35,6 +35,20 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 </td>
 <td align="center" width="33%">
 <video src="withaudio.mp4" controls width="100%"></video>
+<br><strong>Pixar/Disney styled animation with real voice audio prompt enhanced with Animini</strong>
+</td>
+</tr>
+<tr>
+<td align="center" width="33%">
+<video src="mocha_example_baseline.mp4" controls width="100%"></video>
+<br><strong>Baseline</strong>
+</td>
+<td align="center" width="33%">
+<video src="veo3_aiaudio.mp4" controls width="100%"></video>
+<br><strong>Realistic animation prompt with AI audio enhanced with Animini</strong>
+</td>
+<td align="center" width="33%">
+<video src="anime_withaudio.mp4" controls width="100%"></video>
 <br><strong>Pixar/Disney styled animation with real voice audio prompt enhanced with Animini</strong>
 </td>
 </tr>
@@ -168,5 +182,6 @@ In Sora-style video generation, performance must remain coherent across frames w
   title   = {Animini: Emphasis-Controlled Facial Acting via Prompt-Based Control Layers},
   author  = {Alice Chen},
   year    = {2026},
-  howpublished = {\url{X}}
+  howpublished = {\url{https://floweralicee.github.io/lipsync-ai-demo}}
 }
+```
