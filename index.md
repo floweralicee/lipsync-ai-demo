@@ -12,6 +12,7 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 <div class="nav-links">
 <a href="#results-gallery">Results Gallery</a>
 <a href="#key-results-v1">Key Results</a>
+<a href="https://floweralice.substack.com/p/when-can-we-make-a-pixar-level-movie">Substack</a>
 <a href="#citation">Citation</a>
 <a href="https://twitter.com/flower_alicee">X</a>
 <a href="https://linkedin.com/in/floweralice">LinkedIn</a>
@@ -45,11 +46,11 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 </td>
 <td align="center" width="33%">
 <video src="veo3_aiaudio.mp4" controls width="100%"></video>
-<br><strong>Realistic animation prompt with AI audio enhanced with Animini</strong>
+<br><strong>Prompt with AI audio enhanced with Animini</strong>
 </td>
 <td align="center" width="33%">
 <video src="anime_withaudio.mp4" controls width="100%"></video>
-<br><strong>Pixar/Disney styled animation with real voice audio prompt enhanced with Animini</strong>
+<br><strong>Real voice audio prompt enhanced with Animini</strong>
 </td>
 </tr>
 </table>
