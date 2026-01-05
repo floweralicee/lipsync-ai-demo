@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prompt-Level Controls for Prosody-Aligned Facial Performance</title>
   
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   
   <!-- MathJax for equations -->
   <script>
@@ -43,7 +39,7 @@
     }
 
     body {
-      font-family: 'Crimson Pro', 'Times New Roman', Georgia, serif;
+      font-family: 'Times New Roman', Times, serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -220,7 +216,7 @@
 
     /* Code */
     code {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Courier New', Courier, monospace;
       font-size: 0.85em;
       background: #f0f0f0;
       padding: 0.15em 0.4em;
@@ -285,21 +281,6 @@
     }
 
     em {
-      font-style: italic;
-    }
-
-    /* Summary boxes */
-    .research-summary {
-      margin: 1rem 0;
-      padding: 0.75rem 1rem;
-      background: #f5f8fa;
-      border-radius: 4px;
-      font-size: 0.95rem;
-    }
-
-    .research-summary::before {
-      content: "Research-style summary: ";
-      font-weight: 600;
       font-style: italic;
     }
 
@@ -396,10 +377,6 @@
       </ol>
       
       <p><strong>Scope:</strong> This paper focuses on <strong>B + D</strong> (timing and contrast) and tracks A/E as rubric items for future expansion.</p>
-      
-      <div class="research-summary">
-        This decomposition treats "great animation" as a structured signal that can be annotated and tested. The goal is not to reduce performance to one number, but to define a small set of measurable dimensions that explain most variance in perceived liveness for dialogue closeups.
-      </div>
     </section>
 
     <!-- 2. Key Terms -->
@@ -425,7 +402,7 @@
 
     <!-- 3. Benchmark -->
     <section>
-      <h2><span class="section-num">3.</span> Benchmark: Feature-Film Performance Rubric (v0.1)</h2>
+      <h2><span class="section-num">3.</span> Benchmark: Feature-Film Performance Rubric</h2>
       <p>
         Instead of claiming "cinematic," the paper uses a practical rubric aligned with what viewers perceive in dialogue closeups. The rubric is informed by classic animation principles emphasizing clarity, timing, staging, and readable intention (Thomas & Johnston, 1981/1995; Williams, 2001/2009).
       </p>
@@ -447,10 +424,6 @@
             <tr><td>Eye intention (optional)</td><td>Do eyes lead thought changes?</td></tr>
           </tbody>
         </table>
-      </div>
-      
-      <div class="research-summary">
-        The rubric provides an interpretable bridge between qualitative judgment and measurable structure. It also enables targeted iteration: each change should move specific rubric items, not just "overall vibes."
       </div>
     </section>
 
@@ -477,10 +450,6 @@
       <p>
         These controls live in instruction structure (prompt-level). No weight updates are required, enabling rapid ablations.
       </p>
-      
-      <div class="research-summary">
-        This method treats performance as temporal structure. It explicitly targets the timing/contrast dimensions that feature-film practice repeatedly uses to create readable intent (Thomas & Johnston, 1981/1995; Williams, 2001/2009).
-      </div>
     </section>
 
     <!-- 5. Data & Annotation -->
@@ -575,10 +544,6 @@
           </tbody>
         </table>
       </div>
-
-      <div class="research-summary">
-        This annotation isolates structure: stress anchors (where accents should land), beat boundaries (where intent changes), and silence windows (where holds naturally belong). The intent is to make evaluation and iteration auditable, even with lightweight labeling.
-      </div>
     </section>
 
     <!-- 6. Evaluation Protocol -->
@@ -656,10 +621,6 @@
         <li><strong>Rubric consistency:</strong> ICC(2,k) or Krippendorff's α</li>
         <li><strong>Calibration:</strong> A small "gold" set aligns rubric interpretation; calibration excluded from final reporting.</li>
       </ul>
-
-      <div class="research-summary">
-        Evaluation is structured around two layers: (i) proxy metrics that measure temporal organization, and (ii) blinded human judgment with reliability reporting to prevent "one person's taste" from dominating conclusions.
-      </div>
     </section>
 
     <!-- 7. Case Study -->
