@@ -6,7 +6,7 @@ title: "Prompt-Level Controls for Prosody-Aligned Facial Performance"
 # Prompt-Level Controls for Prosody-Aligned Facial Performance
 
 <div class="tldr">
-<strong>TL;DR:</strong> Speech-driven facial animation often feels unnatural even when lip sync is correct—motion accents land at uniform intervals with no contrast between stressed and unstressed words. I introduce a <strong>prompt-level control layer</strong> that aligns accents to speech emphasis and inserts intentional holds, without retraining the model. Four proxy metrics (AAE, ETS, HR, CR) turn subjective "taste" into measurable progress.
+<strong>TL;DR:</strong> Speech-driven facial animation often feels unnatural even with correct lip sync because accents hit at uniform intervals with low stress contrast. I introduce a <strong>prompt-level control layer</strong> that snaps accents to speech emphasis and adds intentional holds, without retraining the model.
 </div>
 
 <div class="nav-links">
@@ -126,7 +126,7 @@ This isolation allows causal attribution: improvements come from the control lay
 @misc{chen2026prosody,
   title   = {Prompt-Level Controls for Prosody-Aligned Facial Performance},
   author  = {Alice Chen},
-  year    = {2026},
+  year    = {2025},
   howpublished = {\url{https://floweralicee.github.io/lipsync-ai-demo}}
 }
 ```
