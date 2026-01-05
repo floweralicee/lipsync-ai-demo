@@ -10,7 +10,7 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 </div>
 
 <div class="nav-links">
-<a href="paper.tex">Paper (LaTeX)</a>
+<a href="paper.html">Paper</a>
 <a href="https://floweralice.substack.com/p/when-can-we-make-a-pixar-level-movie">Substack</a>
 <a href="https://twitter.com/flower_alicee">X</a>
 <a href="https://linkedin.com/in/floweralice">LinkedIn</a>
