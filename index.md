@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "Animini: Emphasis-Controlled Facial Acting"
+title: "Prompt-Level Controls for Prosody-Aligned Facial Performance"
 ---
 
-# Emphasis-Controlled Facial Acting (No Model Training)
+# Prompt-Level Controls for Prosody-Aligned Facial Performance
 
 <div class="tldr">
-<strong>TL;DR:</strong> I improve AI facial acting <strong>without retraining the model</strong> by treating prompting as a <strong>model-agnostic control layer</strong> that maps speech emphasis to <strong>accents + holds</strong>, reducing "even timing" and making performance more intentional.
+<strong>TL;DR:</strong> Speech-driven facial animation often feels unnatural even when lip sync is correct—motion accents land at uniform intervals with no contrast between stressed and unstressed words. I introduce a <strong>prompt-level control layer</strong> that aligns accents to speech emphasis and inserts intentional holds, without retraining the model. Four proxy metrics (AAE, ETS, HR, CR) turn subjective "taste" into measurable progress.
 </div>
 
 <div class="nav-links">
@@ -20,7 +20,7 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 
 ## Results Gallery
 
-> **Controlled setup:** same base model + same audio + same transcript. Only the prompt/control layer differs.
+> **Controlled setup:** Same base model, same audio, same transcript. Only the prompt/control layer differs.
 
 <table>
 <tr>
@@ -55,130 +55,76 @@ title: "Animini: Emphasis-Controlled Facial Acting"
 
 ---
 
-## Key Results (v1)
+## The Problem: Even Timing
 
-- **Blind A/B (N=39 working animators):** **92.3%** preferred Animini prompts for timing + emphasis placement.
-- **Metric:** **78%↓ “even timing” score** on **1,000 generations** (same model/audio; only prompt changes).
-- **Traction:** RedNote **16k impressions**, **100 users** week one; **X% returned within 3 days**.
+Speech-driven facial animation has a long lineage, from early audio-to-control approaches to modern neural and 3D face models conditioned on speech audio. Yet character performance in dialogue closeups frequently fails in predictable ways:
 
-| Condition | Even Timing Score ↓ | Human Preference ↑ | N generations |
-|---|---:|---:|---:|
-| Baseline prompt | X | — | 1000 |
-| Animini prompt | X (**78%↓**) | **92.3%** | 1000 |
+- **Timing is flat** — accents occur at near-uniform intervals
+- **Stillness is missing** — no holds to make beats readable
+- **Accents don't land on meaning** — motion doesn't align with stressed words
+- **Constant micro-motion** — low-amplitude noise that feels "busy" but dead
 
----
-
-## Definitions
-
-- **Even timing:** motion accents occur at near-uniform intervals with low contrast between stressed and unstressed words.
-- **Accent:** a localized peak in motion (head/face/eyes/brows) that marks emphasis.
-- **Hold:** intentional stillness that increases readability and sets up the next accent.
-- **Contrast:** stressed vs unstressed words differ meaningfully in motion magnitude/changes.
-- **Emphasis track:** word timestamps + emphasis score over time (from prosody and/or transcript heuristics).
-- **Pixar-style acting (operationalized):** rhythm of emphasis + contrast + intentional holds (not constant motion).
+The result: faces that are technically animated but feel lifeless, even when lip sync is correct.
 
 ---
 
-## Controls
+## The Method: Prompt-Level Control Layer
 
-### Timing Control (Emphasis + Holds + Contrast)
-- **What I change:** X  
-- **Knobs:** emphasis strength (X), hold duration (X), head energy (X)
-- **Demos:** link to examples above / add more here
+Instead of retraining models, this work introduces instruction-level controls that translate an animator's diagnosis loop into structured constraints:
 
-### (Optional) Emotion / Intention Control
-- **Definition:** X  
-- **Demos:** X
+**Control Primitives:**
+- **Rhythm of emphasis** — assign accents to stressed words and beat boundaries; suppress filler-word motion
+- **Holds** — insert short stillness before key beats to increase contrast and readability
+- **Stress contrast** — amplify motion near stressed words, reduce motion elsewhere
 
-### (Optional) Camera / Shot Control
-(Only include if you truly have it)
-- **Definition:** X  
-- **Demos:** X
+This fits a broader pattern in generative modeling: prompt/instruction changes and auxiliary conditioning can steer pretrained models without full retraining, as seen in instruction-following diffusion editing, prompt-to-prompt attention control, and conditional control modules such as ControlNet.
+
+---
+
+## Key Terms
+
+| Term | Definition |
+|------|------------|
+| **Beat** | A change in intention/thought the audience should notice (new idea, realization, emotional turn) |
+| **Accent** | A motion peak that marks a beat or stressed word (head nod/tilt, brow pop, lid change, jaw "hit") |
+| **Hold** | Intentional stillness (or near-stillness) that creates contrast and makes the next accent readable |
+| **Even timing** | Accents at near-uniform intervals with low stress/unstress contrast |
+| **Micro-motion noise** | Continuous small movement that does not communicate intention |
+
+---
+
+## Proxy Metrics
+
+Four metrics quantify temporal structure without claiming "objective Disney":
+
+| Metric | Abbr. | What it measures | Goal |
+|--------|-------|------------------|------|
+| Accent Alignment Error | AAE | Distance between motion peaks and stress anchors | ↓ Lower |
+| Even Timing Score | ETS | Coefficient of variation of accent gaps | ↑ Higher (less uniform) |
+| Hold Ratio | HR | % frames below motion threshold | ↑ Higher (more stillness) |
+| Contrast Ratio | CR | Motion magnitude on stressed vs unstressed words | ↑ Higher |
 
 ---
 
 ## Evaluation Protocol
 
-### Controlled Comparison Setup
-- Same base model
-- Same audio + transcript
-- Same settings (seed when available / multiple seeds otherwise)
-- Only change: baseline prompt vs Animini structured prompt
+**Controlled Comparison Design:**
+- Same audio
+- Same base generation pipeline/model
+- Same sampling/seed where possible
+- **Only change:** baseline instruction vs control-layer instruction
 
-### Human Study (Blind A/B)
-- **Participants:** 39 working animators
-- **Design:** blind randomized A/B (raters don’t know which is which)
-- **Question asked:** “X”
-- **Outcome:** 92.3% preferred Animini prompts
+This isolation allows causal attribution: improvements come from the control layer, not confounding variables.
 
----
-
-## Metrics
-
-### Even Timing Score (primary)
-- **Definition:** penalizes near-uniform spacing between motion accents.
-- **Accent peak extraction:** X (e.g., head rotation velocity peaks / manual timestamps / motion magnitude peaks)
-- **Result:** 78%↓ on 1,000 generations.
-
-### Optional (v2 / planned)
-- **Accent alignment:** % motion peaks within ±X ms of emphasized words
-- **Contrast ratio:** mean motion magnitude on stressed vs unstressed segments
-- **Hold coverage:** % time under motion threshold + distribution of hold durations
-
----
-
-## Ablations (Causality Checks)
-
-Ablation = remove one component to test what actually causes improvement.
-
-- Remove holds → X
-- Remove emphasis control → X
-- Head-only vs head+face coupling → X
-
----
-
-## Animation-as-Data (Pixar/Disney analysis background)
-
-Performance as measurable behavior, instead of pure taste.
-
-- **Scenes analyzed:** ~1,250
-- **Frames annotated:** ~1,840,000
-- **Artifact:** acting-event taxonomy + annotation protocol
-
-### Acting Event Taxonomy (v1)
-- **Blink triggers:** impact-flinch, gaze shift, emotional transition, micro-freeze, reveal, turn-taking
-- **Beat change:** shift in intention/thought that should cause timing contrast
-- **Emphasis placement:** which words get accents vs holds
-- **Timing primitives:** hold, snap, overshoot, settle (X)
-
-### Key takeaways applied to Animini
-- Holds do the heavy lifting (readability comes from stillness).
-- Accents cluster on emphasized words; unstressed words often get almost nothing.
-- Blink timing often coincides with beat changes and gaze shifts.
-
----
-
-## Why this matters for Sora / video generation
-
-In Sora-style video generation, performance must remain coherent across frames while still being steerable. Word-level emphasis is a natural control handle for speech-driven acting, and this work provides a model-agnostic baseline: a control representation + evaluation protocol that can guide future model-level conditioning for controllable performance in video.
-
----
-
-## Reproducibility
-
-- Baseline prompt template: X  
-- Animini prompt template: X  
-- Sample dataset schema (JSON): X  
-- Metric code / notebook: X  
-- Demo asset list: X  
+**Human Evaluation:** Paired A/B (baseline vs control), randomized order, identical audio, raters blinded. Report preference rate + rubric deltas with uncertainty estimates.
 
 ---
 
 ## Citation
 
 ```bibtex
-@misc{chen2026animini,
-  title   = {Animini: Emphasis-Controlled Facial Acting via Prompt-Based Control Layers},
+@misc{chen2026prosody,
+  title   = {Prompt-Level Controls for Prosody-Aligned Facial Performance},
   author  = {Alice Chen},
   year    = {2026},
   howpublished = {\url{https://floweralicee.github.io/lipsync-ai-demo}}

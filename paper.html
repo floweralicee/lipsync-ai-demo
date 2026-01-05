@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prompt-Level Controls for Prosody-Aligned Facial Performance</title>
   
-  
   <!-- MathJax for equations -->
   <script>
     MathJax = {
@@ -328,7 +327,7 @@
     <section class="abstract">
       <p class="abstract-title">Abstract</p>
       <p>
-        Speech-driven facial performance often feels unnatural even when mouth shapes match phonemes. A common failure mode is <em>even timing</em>, where motion accents land at near-uniform intervals with low contrast between stressed and unstressed words—so the face is "busy," but nothing lands. This paper frames weak animation choices as operational sub-problems (beats, timing, spacing/noise, contrast, eye intention, staging) and focuses on the subset most responsible for perceived intent in dialogue closeups: <strong>rhythm of emphasis</strong>, <strong>holds</strong>, and <strong>stress contrast</strong>. The method introduces a prompt-level acting control layer (instruction structure, not weight updates) and evaluates it under controlled comparisons (same audio, same base pipeline; only instruction changes). Four proxy metrics quantify temporal structure—Accent Alignment Error (AAE), Even Timing Score (ETS), Hold Ratio (HR), Contrast Ratio (CR)—and a case study provides an auditable stress-timestamp annotation table derived from the audio waveform, plus a rubric and iteration loop that converts subjective "taste" into measurable progress.
+        Speech-driven facial performance often feels unnatural even when mouth shapes match phonemes (Suwajanakorn et al., 2017; Prajwal et al., 2020). A common failure mode is <em>even timing</em>, where motion accents land at near-uniform intervals with low contrast between stressed and unstressed words, so the face is "busy," but nothing lands. This paper frames weak animation choices as operational sub-problems (beats, timing, spacing/noise, contrast, eye intention, staging) and focuses on the subset most responsible for perceived intent in dialogue closeups: <strong>rhythm of emphasis</strong>, <strong>holds</strong>, and <strong>stress contrast</strong>. The method introduces a prompt-level acting control layer (instruction structure, not weight updates) and evaluates it under controlled comparisons (same audio, same base pipeline; only instruction changes). Four proxy metrics quantify temporal structure (Accent Alignment Error (AAE), Even Timing Score (ETS), Hold Ratio (HR), Contrast Ratio (CR)) and a case study provides an auditable stress-timestamp annotation table derived from the audio waveform, plus a rubric and iteration loop that converts subjective "taste" into measurable progress.
       </p>
     </section>
 
@@ -337,6 +336,9 @@
       <h2><span class="section-num">1.</span> Introduction</h2>
       <p>
         Modern video systems can produce impressive lighting, environments, and camera aesthetics. Yet character performance in dialogue closeups frequently fails in predictable ways: timing is flat, stillness is missing, accents do not land on meaning, and facial motion becomes constant low-amplitude noise. The result is often perceived as "dead" even when lip sync is correct.
+      </p>
+      <p>
+        Speech-driven facial animation has a long lineage, from early audio-to-control approaches to modern neural and 3D face models conditioned on speech audio (Brand, 1999; Cudeiro et al., 2019; Thies et al., 2020; Zhou et al., 2020).
       </p>
       <p>
         This paper targets a specific, repeatable defect—<em>even timing</em>—and asks a narrow question:
@@ -402,7 +404,7 @@
 
     <!-- 3. Benchmark -->
     <section>
-      <h2><span class="section-num">3.</span> Benchmark: Feature-Film Performance Rubric</h2>
+      <h2><span class="section-num">3.</span> Benchmark: Feature-Film Performance Rubric (v0.1)</h2>
       <p>
         Instead of claiming "cinematic," the paper uses a practical rubric aligned with what viewers perceive in dialogue closeups. The rubric is informed by classic animation principles emphasizing clarity, timing, staging, and readable intention (Thomas & Johnston, 1981/1995; Williams, 2001/2009).
       </p>
@@ -449,6 +451,9 @@
       <p class="paragraph-title">Key idea.</p>
       <p>
         These controls live in instruction structure (prompt-level). No weight updates are required, enabling rapid ablations.
+      </p>
+      <p>
+        This fits a broader pattern in generative modeling: prompt/instruction changes and auxiliary conditioning can steer pretrained models without full retraining, as seen in instruction-following diffusion editing (Brooks et al., 2023), prompt-to-prompt attention control (Hertz et al., 2023), and conditional control modules such as ControlNet (Zhang et al., 2023).
       </p>
     </section>
 
@@ -611,7 +616,7 @@
       <h3>6.3 Human Evaluation Protocol (Blinded A/B + Rubric)</h3>
       <ul>
         <li><strong>Design:</strong> Paired A/B (baseline vs control), randomized order, identical audio, raters blinded.</li>
-        <li><strong>Task:</strong> Preference + rubric scores (Table 1).</li>
+        <li><strong>Task:</strong> Preference + rubric scores (Section 3).</li>
         <li><strong>Report:</strong> Preference rate + rubric deltas with uncertainty estimates.</li>
       </ul>
 
@@ -645,6 +650,8 @@
       </ul>
 
       <h3>7.3 Expected Measurable Outcome</h3>
+      <p>AAE ↓, CV ↑ (less even), HR ↑, CR ↑, rubric deltas improve on emphasis correctness and hold placement.</p>
+      
       <div class="table-container">
         <table>
           <caption><span class="table-num">Table 6:</span> Expected Metric Changes After Intervention</caption>
@@ -667,7 +674,7 @@
 
     <!-- 8. Iteration -->
     <section>
-      <h2><span class="section-num">8.</span> Iteration: Metrics → Diagnosis → Next Experiment</h2>
+      <h2><span class="section-num">8.</span> Iteration: Metrics → Diagnosis → Next Experiment (Closed Loop)</h2>
       
       <p class="paragraph-title">Iteration summary (research framing):</p>
       <p>
@@ -745,11 +752,20 @@
     <section class="references">
       <h2>References</h2>
       <ul class="ref-list">
-        <li>Buck, C., & Lee, J. (Directors). (2013). <em>Frozen</em> [Film]. Walt Disney Pictures.</li>
-        <li>Docter, P., & Powers, K. (Directors). (2020). <em>Soul</em> [Film]. Disney Animation Studios.</li>
-        <li>Howard, B., & Moore, R. (Directors). (2016). <em>Zootopia</em> [Film]. Walt Disney Animation Studios.</li>
+        <li>Brand, M. (1999). Voice puppetry. In <em>Proceedings of SIGGRAPH 1999</em> (pp. 21–28). ACM. <a href="https://doi.org/10.1145/311535.311537">https://doi.org/10.1145/311535.311537</a></li>
+        <li>Brooks, T., Holynski, A., & Efros, A. A. (2023). InstructPix2Pix: Learning to follow image editing instructions. In <em>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>.</li>
+        <li>Buck, C., & Lee, J. (2013). <em>Frozen</em> [Film]. Walt Disney Pictures.</li>
+        <li>Cudeiro, D., Bolkart, T., Laidlaw, C., Ranjan, A., & Black, M. J. (2019). Capture, learning, and synthesis of 3D speaking styles. In <em>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em> (pp. 10093–10103). <a href="https://doi.org/10.1109/CVPR.2019.01034">https://doi.org/10.1109/CVPR.2019.01034</a></li>
+        <li>Docter, P., & Powers, K. (2020). <em>Soul</em> [Film]. Disney Animation Studios.</li>
+        <li>Hertz, A., Mokady, R., Tenenbaum, J., Aberman, K., Pritch, Y., & Cohen-Or, D. (2023). Prompt-to-prompt image editing with cross-attention control. In <em>Proceedings of the International Conference on Learning Representations (ICLR)</em>.</li>
+        <li>Howard, B., & Moore, R. (2016). <em>Zootopia</em> [Film]. Walt Disney Animation Studios.</li>
+        <li>Prajwal, K. R., Mukhopadhyay, R., Namboodiri, V., & Jawahar, C. V. (2020). A lip sync expert is all you need for speech to lip generation in the wild. In <em>Proceedings of the 28th ACM International Conference on Multimedia (ACM MM)</em>. <a href="https://doi.org/10.1145/3394171.3413532">https://doi.org/10.1145/3394171.3413532</a></li>
+        <li>Suwajanakorn, S., Seitz, S. M., & Kemelmacher-Shlizerman, I. (2017). Synthesizing Obama: Learning lip sync from audio. <em>ACM Transactions on Graphics</em>, 36(4). <a href="https://doi.org/10.1145/3072959.3073640">https://doi.org/10.1145/3072959.3073640</a></li>
+        <li>Thies, J., Elgharib, M., Tewari, A., Theobalt, C., & Niessner, M. (2020). Neural voice puppetry: Audio-driven facial reenactment. In <em>Computer Vision – ECCV 2020</em> (LNCS 12361, pp. 716–731). Springer. <a href="https://doi.org/10.1007/978-3-030-58517-4_42">https://doi.org/10.1007/978-3-030-58517-4_42</a></li>
         <li>Thomas, F., & Johnston, O. (1981/1995). <em>The Illusion of Life: Disney Animation</em>. Disney Editions.</li>
         <li>Williams, R. (2001/2009). <em>The Animator's Survival Kit</em>. Faber & Faber.</li>
+        <li>Zhang, L., Rao, A., & Agrawala, M. (2023). Adding conditional control to text-to-image diffusion models. In <em>Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em> (pp. 3813–3824). <a href="https://doi.org/10.1109/ICCV51070.2023.00355">https://doi.org/10.1109/ICCV51070.2023.00355</a></li>
+        <li>Zhou, Y., Han, X., Shechtman, E., Echevarria, J., Kalogerakis, E., & Li, D. (2020). MakeItTalk: Speaker-aware talking-head animation. <em>ACM Transactions on Graphics</em>, 39(6), Article 221. <a href="https://doi.org/10.1145/3414685.3417774">https://doi.org/10.1145/3414685.3417774</a></li>
       </ul>
     </section>
   </article>
