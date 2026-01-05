@@ -1,0 +1,496 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================
+% PACKAGES
+% ============================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{float}
+
+% ============================================
+% PAGE GEOMETRY (NeurIPS-style)
+% ============================================
+\geometry{
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in
+}
+
+% ============================================
+% HYPERREF SETTINGS
+% ============================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=green!50!black,
+    urlcolor=blue!70!black
+}
+
+% ============================================
+% TITLE
+% ============================================
+\title{\textbf{Prompt-Level Controls for Prosody-Aligned Facial Performance}}
+
+\author{
+    \textbf{Alice Chen} \\
+    \texttt{floweralicee.github.io/lipsync-ai-demo}
+}
+
+\date{}
+
+% ============================================
+% DOCUMENT
+% ============================================
+\begin{document}
+
+\maketitle
+
+% ============================================
+% ABSTRACT
+% ============================================
+\begin{abstract}
+Speech-driven facial performance often feels unnatural even when mouth shapes match phonemes. A common failure mode is \textit{even timing}, where motion accents land at near-uniform intervals with low contrast between stressed and unstressed words---so the face is ``busy,'' but nothing lands. This paper frames weak animation choices as operational sub-problems (beats, timing, spacing/noise, contrast, eye intention, staging) and focuses on the subset most responsible for perceived intent in dialogue closeups: \textbf{rhythm of emphasis}, \textbf{holds}, and \textbf{stress contrast}. The method introduces a prompt-level acting control layer (instruction structure, not weight updates) and evaluates it under controlled comparisons (same audio, same base pipeline; only instruction changes). Four proxy metrics quantify temporal structure---Accent Alignment Error (AAE), Even Timing Score (ETS), Hold Ratio (HR), Contrast Ratio (CR)---and a case study provides an auditable stress-timestamp annotation table derived from the audio waveform, plus a rubric and iteration loop that converts subjective ``taste'' into measurable progress.
+\end{abstract}
+
+% ============================================
+% 1. INTRODUCTION
+% ============================================
+\section{Introduction}
+
+Modern video systems can produce impressive lighting, environments, and camera aesthetics. Yet character performance in dialogue closeups frequently fails in predictable ways: timing is flat, stillness is missing, accents do not land on meaning, and facial motion becomes constant low-amplitude noise. The result is often perceived as ``dead'' even when lip sync is correct.
+
+This paper targets a specific, repeatable defect---\textit{even timing}---and asks a narrow question:
+
+\begin{quote}
+\textit{Can instruction-level controls reliably shift facial motion toward stress-aligned accents and readable holds, under controlled comparisons, without changing model weights?}
+\end{quote}
+
+\subsection{Problem Decomposition: Operationalizing ``Weak Animation Choices''}
+
+To make ``this animation doesn't look good'' actionable, the work decomposes perceived quality into separable sub-problems, each mapped to (i) an annotation target, (ii) a controllable instruction primitive, or (iii) a metric.
+
+\paragraph{How this decomposition was derived.}
+This list did not come from theory first---it came from repeated diagnosis. The author developed the decomposition by scene-by-scene performance analysis across thousands of shots from feature-film (e.g., \textit{Zootopia}, \textit{Frozen}, \textit{Soul}) and by comparing that benchmark against hundreds of student shots that failed in consistent ways \citep{buck2013frozen, docter2020soul, howard2016zootopia}. Across these comparisons, different ``bad'' outputs often looked different on the surface, but they collapsed into a small set of recurring failure modes: unclear beats, uniform rhythm, missing holds, excess micro-motion noise, drifting eye intention, and poor staging/silhouette. In other words, the list below reflects a practical attempt to translate principles used in production practice into a diagnostic framework consistent with classic animation guidance \citep{thomas1995illusion, williams2009animator}.
+
+\paragraph{Decomposed sub-problems.}
+
+\begin{enumerate}[label=\textbf{\Alph*}), leftmargin=2em]
+    \item \textbf{Beat clarity (staging + beats):} Are intention changes readable as discrete beats? \\
+    \textit{Label:} beat boundaries \quad \textit{Rubric:} beat readability
+    
+    \item \textbf{Timing (rhythm of emphasis):} Do accents land on stressed words / beat boundaries rather than uniform spacing? \\
+    \textit{Labels:} stress anchors \quad \textit{Metrics:} AAE, ETS
+    
+    \item \textbf{Spacing / micro-motion noise:} Is motion dominated by jitter that adds busyness without intent? \\
+    \textit{Metric:} HR (with noise thresholds) \quad \textit{Rubric:} noise vs intent
+    
+    \item \textbf{Contrast (stillness vs movement):} Are there holds that make beats readable? \\
+    \textit{Metrics:} HR, CR \quad \textit{Rubric:} hold placement
+    
+    \item \textbf{Eye path / intention:} Do eyes lead thought changes, or drift without purpose? \\
+    \textit{Label:} gaze shift events \quad \textit{Rubric:} eye-leads-thought
+    
+    \item \textbf{Silhouette / readability (for wider shots):} Does a single frame communicate the beat? \\
+    \textit{Rubric item:} pose/silhouette (optional in closeup-only evaluation)
+\end{enumerate}
+
+\noindent\textbf{Scope:} This paper focuses on \textbf{B + D} (timing and contrast) and tracks A/E as rubric items for future expansion.
+
+\paragraph{Research-style summary.} This decomposition treats ``great animation'' as a structured signal that can be annotated and tested. The goal is not to reduce performance to one number, but to define a small set of measurable dimensions that explain most variance in perceived liveness for dialogue closeups.
+
+% ============================================
+% 2. KEY TERMS
+% ============================================
+\section{Key Terms}
+
+\begin{description}[leftmargin=1.5em, style=nextline]
+    \item[\textbf{Beat}] A change in intention/thought the audience should notice (new idea, realization, emotional turn).
+    \item[\textbf{Accent}] A motion peak that marks a beat or a stressed word (head nod/tilt, brow pop, lid change, jaw ``hit'').
+    \item[\textbf{Hold}] Intentional stillness (or near-stillness) that creates contrast and makes the next accent readable.
+    \item[\textbf{Even timing}] Accents occur at near-uniform intervals with low stress/non-stress contrast.
+    \item[\textbf{Micro-motion noise}] Continuous small movement that does not communicate intention (wiggle that reduces readability).
+\end{description}
+
+% ============================================
+% 3. BENCHMARK
+% ============================================
+\section{Benchmark: Feature-Film Performance Rubric (v0.1)}
+
+Instead of claiming ``cinematic,'' the paper uses a practical rubric aligned with what viewers perceive in dialogue closeups. The rubric is informed by classic animation principles emphasizing clarity, timing, staging, and readable intention \citep{thomas1995illusion, williams2009animator}.
+
+\begin{table}[H]
+\centering
+\caption{Feature-Film Performance Rubric (1--5 scale per dimension)}
+\label{tab:rubric}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Dimension} & \textbf{Description} \\
+\midrule
+Beat readability & Can a viewer point to the thought changes? \\
+Emphasis correctness & Do accents land on stressed words? \\
+Hold placement & Is stillness used to make beats readable? \\
+Micro-motion noise (reverse) & Is there purposeless jitter? (lower score = more noise) \\
+Eye intention (optional) & Do eyes lead thought changes? \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Research-style summary.} The rubric provides an interpretable bridge between qualitative judgment and measurable structure. It also enables targeted iteration: each change should move specific rubric items, not just ``overall vibes.''
+
+% ============================================
+% 4. METHOD
+% ============================================
+\section{Method: A Prompt-Level ``Acting Control Layer''}
+
+The method translates an animator's diagnosis loop into structured instruction constraints.
+
+\paragraph{Animator diagnosis loop (conceptual):}
+\[
+\text{find the beat} \rightarrow \text{add a hold} \rightarrow \text{place the accent} \rightarrow \text{clean up in-betweens} \rightarrow \text{check readability}
+\]
+
+\paragraph{Control primitives (instruction-level):}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Rhythm of emphasis:} Assign accents to stressed words and beat boundaries; suppress filler-word motion.
+    \item \textbf{Holds:} Insert short stillness before key beats to increase contrast and readability.
+    \item \textbf{Stress contrast:} Amplify motion near stressed words, reduce motion elsewhere, and avoid constant micro-motion.
+\end{itemize}
+
+\paragraph{Key idea.} These controls live in instruction structure (prompt-level). No weight updates are required, enabling rapid ablations.
+
+\paragraph{Research-style summary.} This method treats performance as temporal structure. It explicitly targets the timing/contrast dimensions that feature-film practice repeatedly uses to create readable intent \citep{thomas1995illusion, williams2009animator}.
+
+% ============================================
+% 5. DATA & ANNOTATION
+% ============================================
+\section{Data \& Annotation (Auditable, Lightweight)}
+
+This paper uses a one-clip case study designed to be reproducible in a single day, even without forced alignment tooling.
+
+\subsection{Case Study Transcript}
+
+\begin{quote}
+``You don't understand, I am a celebrity, it is all about me, it has been for decades, hahaha, that is the point of celebrity.''
+\end{quote}
+
+\subsection{Annotation Schema}
+
+Minimal labels that capture performance structure (not aesthetic preference):
+
+\begin{itemize}[leftmargin=2em]
+    \item Stress anchors (word-level timestamps)
+    \item Beat boundaries (timestamps for intention shifts)
+    \item Pause/inhale windows (silence gaps)
+    \item Optional acting events: gaze shifts, blink clusters, laughter burst, hold segments
+\end{itemize}
+
+\subsection{Stress-Timestamp Table (Derived from Audio Waveform)}
+
+These anchors are approximate (audio energy/prosody peaks + silence segmentation), intended to be auditable and ``good enough'' for controlled proxy metrics. Peak time is the recommended target for the primary accent.
+
+\begin{table}[H]
+\centering
+\caption{Stress-Timestamp Annotations for Case Study Clip}
+\label{tab:stress-timestamps}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Token (anchor)} & \textbf{Type} & \textbf{Window (s)} & \textbf{Peak (s)} \\
+\midrule
+don't & stress & 0.715--0.955 & 0.835 \\
+I & stress & 1.700--1.845 & 1.725 \\
+celebriTY (first) & stress & 2.285--2.525 & 2.405 \\
+ME & stress & 4.385--4.608 & 4.505 \\
+deCADES & stress & 6.005--6.245 & 6.125 \\
+hahaha & event (laugh) & 6.445--6.671 & 6.565 \\
+POINT & stress & 7.215--7.455 & 7.335 \\
+celebriTY (final) & stress & 8.445--8.685 & 8.565 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Pause/Inhale Candidates (Silence Gaps)}
+
+\begin{table}[H]
+\centering
+\caption{Silence Windows for Hold Placement}
+\label{tab:silence-windows}
+\begin{tabular}{@{}ccp{5cm}@{}}
+\toprule
+\textbf{Silence Window (s)} & \textbf{Duration} & \textbf{Use} \\
+\midrule
+1.472--1.700 & 228 ms & inhale / pre-``I'' beat \\
+2.858--3.400 & 542 ms & inhale / beat reset \\
+4.608--4.767 & 159 ms & micro-pause (pre-``decades'' ramp) \\
+6.671--6.877 & 206 ms & pause (post-laugh) \\
+7.546--7.670 & 124 ms & micro-pause (pre-final) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Beat Boundary Proposal (For This Line)}
+
+\begin{table}[H]
+\centering
+\caption{Proposed Beat Boundaries for Case Study}
+\label{tab:beat-boundaries}
+\begin{tabular}{@{}clc@{}}
+\toprule
+\textbf{Beat} & \textbf{Description} & \textbf{Approx. Time (s)} \\
+\midrule
+B1 & dismissal: ``you don't understand'' & $\sim$0.63--1.27 \\
+B2 & self-assertion: ``I am a celebrity'' & $\sim$1.69--2.88 \\
+B3 & grandiose peak: ``it is all about me'' & $\sim$3.39--4.62 \\
+B4 & history claim + crack: ``it has been for decades'' & $\sim$4.76--6.46 \\
+B5 & mask slip: ``hahaha'' & $\sim$6.54--6.69 \\
+B6 & strained regain control: ``that is the point of celebrity'' & $\sim$6.87--8.77 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Research-style summary.} This annotation isolates structure: stress anchors (where accents should land), beat boundaries (where intent changes), and silence windows (where holds naturally belong). The intent is to make evaluation and iteration auditable, even with lightweight labeling.
+
+% ============================================
+% 6. EVALUATION PROTOCOL
+% ============================================
+\section{Evaluation Protocol}
+
+\subsection{Controlled Comparison Design}
+
+To claim causality, evaluation must hold everything constant except instruction structure:
+
+\begin{itemize}[leftmargin=2em]
+    \item Same audio
+    \item Same base generation pipeline/model
+    \item Same sampling/seed where possible (if not, report variability across $N$ runs)
+    \item \textbf{Only change:} baseline instruction vs control-layer instruction
+\end{itemize}
+
+\subsection{Proxy Metrics}
+
+These metrics do not claim ``objective Disney.'' They quantify whether the output better matches the intended structure (emphasis + holds + contrast).
+
+\subsubsection{Accent Alignment Error (AAE)}
+
+\begin{equation}
+\text{AAE} = \frac{1}{N}\sum_{i=1}^{N} |t^{\text{peak}}_i - t^{\text{stress}}_i|
+\label{eq:aae}
+\end{equation}
+
+\noindent\textit{Lower is better.}
+
+\subsubsection{Even Timing Score (ETS)}
+
+Compute accent gaps $\Delta t$ between consecutive motion peaks.
+
+\begin{equation}
+\text{CV} = \frac{\text{std}(\Delta t)}{\text{mean}(\Delta t)}
+\label{eq:ets}
+\end{equation}
+
+\noindent Low CV $\Rightarrow$ too even $\Rightarrow$ worse. Higher CV (within reason) $\Rightarrow$ better rhythm.
+
+\subsubsection{Hold Ratio (HR)}
+
+\begin{equation}
+\text{HR} = \frac{\text{\# frames below motion threshold } \tau}{\text{total dialogue frames}}
+\label{eq:hr}
+\end{equation}
+
+\noindent\textit{Higher is better up to a point.}
+
+\subsubsection{Contrast Ratio (CR)}
+
+\begin{equation}
+\text{CR} = \frac{\text{avg motion magnitude near stressed words}}{\text{avg motion magnitude near unstressed words}}
+\label{eq:cr}
+\end{equation}
+
+\noindent\textit{Higher is better (within reason).}
+
+\begin{table}[H]
+\centering
+\caption{Summary of Proxy Metrics}
+\label{tab:metrics-summary}
+\begin{tabular}{@{}lcl@{}}
+\toprule
+\textbf{Metric} & \textbf{Abbreviation} & \textbf{Desired Direction} \\
+\midrule
+Accent Alignment Error & AAE & $\downarrow$ (lower is better) \\
+Even Timing Score (CV) & ETS & $\uparrow$ (higher CV = less uniform) \\
+Hold Ratio & HR & $\uparrow$ (more stillness) \\
+Contrast Ratio & CR & $\uparrow$ (more stress differentiation) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Human Evaluation Protocol (Blinded A/B + Rubric)}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Design:} Paired A/B (baseline vs control), randomized order, identical audio, raters blinded.
+    \item \textbf{Task:} Preference + rubric scores (Section~\ref{tab:rubric}).
+    \item \textbf{Report:} Preference rate + rubric deltas with uncertainty estimates.
+\end{itemize}
+
+\subsection{Inter-Rater Reliability}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Preference agreement:} Fleiss' $\kappa$ or Cohen's $\kappa$
+    \item \textbf{Rubric consistency:} ICC(2,k) or Krippendorff's $\alpha$
+    \item \textbf{Calibration:} A small ``gold'' set aligns rubric interpretation; calibration excluded from final reporting.
+\end{itemize}
+
+\paragraph{Research-style summary.} Evaluation is structured around two layers: (i) proxy metrics that measure temporal organization, and (ii) blinded human judgment with reliability reporting to prevent ``one person's taste'' from dominating conclusions.
+
+% ============================================
+% 7. CASE STUDY
+% ============================================
+\section{Case Study: Applying the Control Layer to the Clip}
+
+\subsection{Baseline Diagnosis (Typical Signature)}
+
+\begin{itemize}[leftmargin=2em]
+    \item Accents near-uniform intervals (low CV)
+    \item Holds missing (low HR)
+    \item Low stress contrast (low CR)
+    \item Motion peaks drift relative to stress anchors (high AAE)
+    \item Micro-motion noise fills gaps (rubric penalty)
+\end{itemize}
+
+\subsection{Intervention (Instruction-Level)}
+
+\begin{itemize}[leftmargin=2em]
+    \item Place primary accents near: \texttt{don't}, \texttt{I}, \texttt{celebriTY}, \texttt{ME}, \texttt{deCADES}, \texttt{POINT}, \texttt{celebriTY} (final)
+    \item Insert holds in silence windows: 1.472--1.700, $\sim$4.60, 6.67--6.88
+    \item Suppress filler-word motion to protect contrast
+    \item Treat ``hahaha'' as an event with body stillness and minimal deliberate facial intent
+\end{itemize}
+
+\subsection{Expected Measurable Outcome}
+
+\begin{table}[H]
+\centering
+\caption{Expected Metric Changes After Intervention}
+\label{tab:expected-outcomes}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Metric} & \textbf{Baseline} & \textbf{Expected (Control Layer)} \\
+\midrule
+AAE & High & $\downarrow$ (improved alignment) \\
+CV (ETS) & Low (too even) & $\uparrow$ (less uniform) \\
+HR & Low & $\uparrow$ (more holds) \\
+CR & Low & $\uparrow$ (better contrast) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================
+% 8. ITERATION
+% ============================================
+\section{Iteration: Metrics $\rightarrow$ Diagnosis $\rightarrow$ Next Experiment}
+
+\paragraph{Iteration summary (research framing):} The method uses measurement to localize failure, then modifies one control factor at a time to attribute improvements to specific causes.
+
+\subsection{Closed-Loop Process}
+
+\begin{enumerate}[leftmargin=2em]
+    \item \textbf{Step 1 --- Measure:} Compute AAE/ETS/HR/CR + rubric deltas.
+    
+    \item \textbf{Step 2 --- Diagnose} (metric $\rightarrow$ cause mapping):
+    \begin{itemize}
+        \item AAE high $\Rightarrow$ accents late/early $\rightarrow$ shift accent timing constraints by $\Delta t$
+        \item ETS too low $\Rightarrow$ too even $\rightarrow$ add holds at beat boundaries; suppress filler motion more
+        \item HR too low $\Rightarrow$ not enough stillness $\rightarrow$ enforce explicit holds; reduce micro-motion
+        \item CR too low $\Rightarrow$ stress not readable $\rightarrow$ amplify stressed-word accents; reduce unstressed motion
+    \end{itemize}
+    
+    \item \textbf{Step 3 --- Ablate:} Change one factor at a time:
+    \begin{itemize}
+        \item head-only vs head+eyes+brows coupling
+        \item hold length sweep (2/3/5/8 frames)
+        \item stress threshold sweep (which words are primary)
+    \end{itemize}
+    
+    \item \textbf{Step 4 --- Select} (decision rule summary): Accept a change only if target metrics improve by $\geq \Delta X$ while regressions stay below $\epsilon$ (e.g., HR $\uparrow$ without AAE worsening beyond $\epsilon$).
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{Diagnosis Mapping: Metric Failure $\rightarrow$ Control Adjustment}
+\label{tab:diagnosis-mapping}
+\begin{tabular}{@{}p{2.5cm}p{3.5cm}p{5cm}@{}}
+\toprule
+\textbf{Metric Signal} & \textbf{Diagnosis} & \textbf{Control Adjustment} \\
+\midrule
+AAE high & Accents misaligned & Shift accent timing constraints by $\Delta t$ \\
+ETS/CV low & Rhythm too uniform & Add holds at beat boundaries; suppress filler \\
+HR low & Insufficient stillness & Enforce explicit holds; reduce micro-motion \\
+CR low & Poor stress contrast & Amplify stressed accents; reduce unstressed motion \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================
+% 9. LIMITATIONS
+% ============================================
+\section{Limitations}
+
+\begin{itemize}[leftmargin=2em]
+    \item Proxy metrics approximate perceived quality; blinded human preference remains primary.
+    \item Stress anchors derived from waveform peaks are approximate; forced alignment would improve precision.
+    \item Prompt-level controls improve consistency but may fail for extreme styles or noisy audio.
+    \item Eye intention and staging require additional labels and signal extraction.
+\end{itemize}
+
+% ============================================
+% 10. NEXT STEPS
+% ============================================
+\section{Next Steps}
+
+\begin{itemize}[leftmargin=2em]
+    \item Replace approximate anchors with forced alignment + prosody features ($F_0$, energy, duration).
+    \item Convert anchors into an explicit emphasis track for conditioning (not only instruction).
+    \item Expand evaluation across speaking styles and emotional contexts.
+    \item Add dedicated metrics for gaze alignment and micro-motion noise.
+    \item Build a small benchmark set with labeled beats/stress + rubric + reliability as standard.
+\end{itemize}
+
+% ============================================
+% REFERENCES
+% ============================================
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem[Buck \& Lee(2013)]{buck2013frozen}
+Buck, C., \& Lee, J. (Directors). (2013). \textit{Frozen} [Film]. Walt Disney Pictures.
+
+\bibitem[Docter \& Powers(2020)]{docter2020soul}
+Docter, P., \& Powers, K. (Directors). (2020). \textit{Soul} [Film]. Disney Animation Studios.
+
+\bibitem[Howard \& Moore(2016)]{howard2016zootopia}
+Howard, B., \& Moore, R. (Directors). (2016). \textit{Zootopia} [Film]. Walt Disney Animation Studios.
+
+\bibitem[Thomas \& Johnston(1981/1995)]{thomas1995illusion}
+Thomas, F., \& Johnston, O. (1981/1995). \textit{The Illusion of Life: Disney Animation}. Disney Editions.
+
+\bibitem[Williams(2001/2009)]{williams2009animator}
+Williams, R. (2001/2009). \textit{The Animator's Survival Kit}. Faber \& Faber.
+
+\end{thebibliography}
+
+\end{document}
